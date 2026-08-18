@@ -17,11 +17,9 @@
 
         .follow-up-section { margin-top: 20px; text-align: left; background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9f43; }
         
-        /* New Filter Box Styles */
         .filter-container { display: flex; gap: 10px; margin-top: 15px; }
         #days-input { width: 30%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; text-align: center; }
         #fetch-custom-btn { width: 70%; background-color: #ff9f43; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        #fetch-custom-btn:active { transform: scale(0.98); }
 
         .task-item { padding: 12px 0; border-bottom: 1px solid #ffeaa7; font-size: 15px; }
         .task-item:last-child { border-bottom: none; }
@@ -43,13 +41,11 @@
         
         <h4 style="margin: 0 0 10px 0; color: #d35400;">🗓️ कस्टम फॉलो-अप फ़िल्टर</h4>
         
-        <!-- नया फ़िल्टर बॉक्स और बटन -->
         <div class="filter-container">
             <input type="number" id="days-input" placeholder="दिन (उदा. 7, 30)" min="1">
             <button id="fetch-custom-btn">डेटा देखें 🔍</button>
         </div>
         
-        <!-- लिस्ट यहाँ दिखेगी -->
         <div id="upcoming-list" style="margin-top: 15px;"></div>
     </div>
 </div>
@@ -65,33 +61,46 @@
     // 👇 अपना Web App URL यहाँ डालें 👇
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzjsrRciq5Vluicx4NvxEsga5G8rmfhT1YuBX3BJCM6Z2tTO90FhjJxZJJ7hVrFOkkFLA/exec'; 
 
-    // डेटा सेव करने वाला पुराना कोड
+    let isSubmitting = false; // डबल क्लिक रोकने के लिए गार्ड वेरिएबल
+
     saveBtn.addEventListener('click', async () => {
-        const recordedText = textOutput.value;
-        if(recordedText.trim() === "") { alert("पहले कुछ बोलकर टेक्स्ट टाइप करें!"); return; }
+        if (isSubmitting) return; // अगर पहले से सेव हो रहा है, तो दोबारा क्लिक काम नहीं करेगा
+
+        const recordedText = textOutput.value.trim();
+        if(recordedText === "") { 
+            alert("पहले कुछ बोलकर टेक्स्ट टाइप करें!"); 
+            return; 
+        }
         
-        saveBtn.innerText = "सेव हो रहा है... ⏳"; saveBtn.disabled = true;
+        isSubmitting = true;
+        saveBtn.innerText = "सेव हो रहा है... ⏳"; 
+        saveBtn.disabled = true;
         statusMsg.innerText = "Gemini डेटा प्रोसेस कर रहा है...";
 
         try {
-            const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ text: recordedText }) });
+            const response = await fetch(WEB_APP_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ text: recordedText }) 
+            });
             const result = await response.json();
+            
             if(result.status === "success") {
-                statusMsg.innerHTML = "✅ डेटा सेव हो गया!";
+                statusMsg.innerHTML = "✅ डेटा सफलतापूर्वक सेव हो गया!";
                 textOutput.value = ""; 
-            } else { statusMsg.innerHTML = "❌ एरर: " + result.message; }
+            } else { 
+                statusMsg.innerHTML = "❌ एरर: " + result.message; 
+            }
         } catch (error) {
-            statusMsg.innerHTML = "❌ नेटवर्क एरर!";
+            statusMsg.innerHTML = "❌ नेटवर्क एरर! कृपया दोबारा ट्राई करें।";
         } finally {
-            saveBtn.innerText = "डायरी में सेव करें 💾"; saveBtn.disabled = false;
+            isSubmitting = false;
+            saveBtn.innerText = "डायरी में सेव करें 💾"; 
+            saveBtn.disabled = false;
         }
     });
 
-    // कस्टम डेट के हिसाब से डेटा लाने वाला नया कोड
     fetchCustomBtn.addEventListener('click', async () => {
         let customDays = parseInt(daysInput.value);
-        
-        // अगर यूज़र ने खाली बॉक्स में क्लिक किया या गलत नंबर डाला
         if(isNaN(customDays) || customDays <= 0) {
             alert("कृपया बॉक्स में सही दिन डालें (जैसे 5, 15, 30)");
             return;
@@ -104,7 +113,6 @@
             const response = await fetch(WEB_APP_URL);
             const data = await response.json();
             
-            // आज की और यूज़र के डाले गए दिनों के बाद की तारीख सेट करना
             const today = new Date();
             today.setHours(0,0,0,0);
             
@@ -132,7 +140,6 @@
             if(html === "") {
                 html = `<p style='color: #27ae60; font-weight: bold;'>👍 अगले ${customDays} दिनों में कोई पेंडिंग फॉलो-अप नहीं है!</p>`;
             } else {
-                // लिस्ट के ऊपर एक छोटी सी समरी (Summary) भी दिखाएंगे
                 html = `<div style="background: #fad390; padding: 5px 10px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; font-size: 14px;">कुल ${count} फॉलो-अप मिले:</div>` + html;
             }
             
