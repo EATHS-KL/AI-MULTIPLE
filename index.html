@@ -3,110 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Sales Diary</title>
+    <title>Smart Lead Tracker</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; }
+        .container { max-width: 420px; margin: 0 auto; background: #ffffff; padding: 25px 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         
-        #text-output { width: 100%; height: 120px; margin-top: 15px; padding: 15px; border: 2px solid #2ed573; border-radius: 8px; font-size: 18px; box-sizing: border-box; resize: none; background-color: #fafffc; }
-        #text-output:focus { outline: none; border-color: #ff4757; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { color: #1e293b; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .header p { color: #64748b; font-size: 14px; margin-top: 5px; }
 
-        #save-btn { background-color: #1e90ff; color: white; border: none; border-radius: 8px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: 0.3s; }
-        #save-btn:disabled { background-color: #a4b0be; cursor: not-allowed; }
+        #text-output { width: 100%; height: 120px; padding: 15px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 16px; font-family: inherit; box-sizing: border-box; resize: none; background-color: #f8fafc; transition: all 0.3s ease; line-height: 1.5; }
+        #text-output:focus { outline: none; border-color: #3b82f6; background-color: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
 
-        .follow-up-section { margin-top: 20px; text-align: left; background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9f43; }
+        #save-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 10px; width: 100%; padding: 16px; font-size: 16px; cursor: pointer; margin-top: 15px; font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        #save-btn:active { transform: translateY(2px); }
+
+        .dashboard-section { margin-top: 30px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .section-title { margin: 0 0 15px 0; color: #334155; font-size: 16px; font-weight: 600; }
+
+        #status-msg { font-size: 13px; color: #475569; background: #e2e8f0; padding: 8px 12px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-weight: 500; }
+
+        /* New Quick Filter Chips */
+        .chip-container { display: flex; gap: 8px; margin-bottom: 12px; }
+        .chip-btn { flex: 1; background: #e0e7ff; color: #4f46e5; border: 1px solid #c7d2fe; padding: 8px 5px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .chip-btn:hover { background: #c7d2fe; }
+        .chip-btn:active { transform: scale(0.95); }
+
+        .filter-container { display: flex; gap: 10px; }
+        #days-input { width: 35%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; text-align: center; font-family: inherit; }
+        #days-input:focus { outline: none; border-color: #3b82f6; }
         
-        .filter-container { display: flex; gap: 10px; margin-top: 15px; }
-        #days-input { width: 30%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; text-align: center; }
-        #fetch-custom-btn { width: 70%; background-color: #ff9f43; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        #fetch-custom-btn { width: 65%; background: #0f172a; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 600; }
+        #fetch-custom-btn:active { transform: scale(0.98); }
 
-        .task-item { padding: 12px 0; border-bottom: 1px solid #ffeaa7; font-size: 15px; }
-        .task-item:last-child { border-bottom: none; }
-        .badge { background: #ff4757; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 5px; }
+        #upcoming-list { margin-top: 20px; }
+        .task-card { background: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-align: left; }
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .task-name { font-weight: 600; color: #1e293b; font-size: 15px; }
+        .task-date { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .task-req { color: #64748b; font-size: 14px; line-height: 1.4; }
+        .summary-badge { background: #dcfce7; color: #166534; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Smart Sales Diary</h2>
-    <p>नीचे बॉक्स पर क्लिक करें और बोलें:</p>
+    <div class="header">
+        <h2>Smart Lead Tracker</h2>
+        <p>Tap the mic on your keyboard to dictate notes.</p>
+    </div>
 
-    <textarea id="text-output" placeholder="यहाँ टैप करें और बोलें..."></textarea>
-    <button id="save-btn">डायरी में सेव करें 💾</button>
+    <textarea id="text-output" placeholder="e.g., Rajesh from Rajasthan needs Kurti & Pant. Budget is 25000..."></textarea>
+    <button id="save-btn">Save Entry 💾</button>
 
-    <div class="follow-up-section">
-        <p id="status-msg">सिस्टम रेडी है ✅</p>
-        <hr style="border: 0.5px solid #ffeaa7; margin: 15px 0;">
+    <div class="dashboard-section">
+        <div id="status-msg">System Ready 🟢</div>
         
-        <h4 style="margin: 0 0 10px 0; color: #d35400;">🗓️ कस्टम फॉलो-अप फ़िल्टर</h4>
+        <h4 class="section-title">📅 Upcoming Follow-ups</h4>
         
-        <div class="filter-container">
-            <input type="number" id="days-input" placeholder="दिन (उदा. 7, 30)" min="1">
-            <button id="fetch-custom-btn">डेटा देखें 🔍</button>
+        <!-- New Quick Buttons -->
+        <div class="chip-container">
+            <button class="chip-btn" onclick="fetchLeads(7)">This Week</button>
+            <button class="chip-btn" onclick="fetchLeads(30)">This Month</button>
         </div>
         
-        <div id="upcoming-list" style="margin-top: 15px;"></div>
+        <div class="filter-container">
+            <input type="number" id="days-input" placeholder="Custom Days" min="1">
+            <button id="fetch-custom-btn" onclick="fetchCustomLeads()">Search 🔍</button>
+        </div>
+        
+        <div id="upcoming-list"></div>
     </div>
 </div>
 
 <script>
     const saveBtn = document.getElementById('save-btn');
-    const fetchCustomBtn = document.getElementById('fetch-custom-btn');
-    const daysInput = document.getElementById('days-input');
     const textOutput = document.getElementById('text-output');
     const statusMsg = document.getElementById('status-msg');
     const upcomingList = document.getElementById('upcoming-list');
+    const daysInput = document.getElementById('days-input');
 
     // 👇 अपना Web App URL यहाँ डालें 👇
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzjsrRciq5Vluicx4NvxEsga5G8rmfhT1YuBX3BJCM6Z2tTO90FhjJxZJJ7hVrFOkkFLA/exec'; 
 
-    let isSubmitting = false; // डबल क्लिक रोकने के लिए गार्ड वेरिएबल
-
-    saveBtn.addEventListener('click', async () => {
-        if (isSubmitting) return; // अगर पहले से सेव हो रहा है, तो दोबारा क्लिक काम नहीं करेगा
-
+    saveBtn.addEventListener('click', () => {
         const recordedText = textOutput.value.trim();
         if(recordedText === "") { 
-            alert("पहले कुछ बोलकर टेक्स्ट टाइप करें!"); 
+            alert("Please enter some text first!"); 
             return; 
         }
         
-        isSubmitting = true;
-        saveBtn.innerText = "सेव हो रहा है... ⏳"; 
-        saveBtn.disabled = true;
-        statusMsg.innerText = "Gemini डेटा प्रोसेस कर रहा है...";
+        // 1. तुरंत बॉक्स खाली कर दो (Optimistic UI)
+        textOutput.value = ""; 
+        
+        // 2. बैकग्राउंड स्टेटस अपडेट करो (Gemini का नाम हटा दिया है)
+        statusMsg.innerHTML = "🔄 Syncing data in background... Please don't close app.";
+        statusMsg.style.background = "#fef9c3"; 
+        statusMsg.style.color = "#854d0e";
 
-        try {
-            const response = await fetch(WEB_APP_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ text: recordedText }) 
-            });
-            const result = await response.json();
-            
+        // 3. बैकग्राउंड में रिक्वेस्ट भेजो
+        fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ text: recordedText }) 
+        })
+        .then(response => response.json())
+        .then(result => {
             if(result.status === "success") {
-                statusMsg.innerHTML = "✅ डेटा सफलतापूर्वक सेव हो गया!";
-                textOutput.value = ""; 
-            } else { 
-                statusMsg.innerHTML = "❌ एरर: " + result.message; 
+                statusMsg.innerHTML = "✅ All synced! Data saved.";
+                statusMsg.style.background = "#dcfce7";
+                statusMsg.style.color = "#166534";
+            } else {
+                throw new Error(result.message);
             }
-        } catch (error) {
-            statusMsg.innerHTML = "❌ नेटवर्क एरर! कृपया दोबारा ट्राई करें।";
-        } finally {
-            isSubmitting = false;
-            saveBtn.innerText = "डायरी में सेव करें 💾"; 
-            saveBtn.disabled = false;
-        }
+        })
+        .catch(error => {
+            statusMsg.innerHTML = "⚠️ <b>Network Issue!</b> Data might not be saved. Check connection.";
+            statusMsg.style.background = "#fee2e2";
+            statusMsg.style.color = "#991b1b";
+            // अगर एरर आया तो यूज़र का टेक्स्ट वापस बॉक्स में डाल दो ताकि मेहनत खराब न हो
+            textOutput.value = recordedText; 
+        });
     });
 
-    fetchCustomBtn.addEventListener('click', async () => {
-        let customDays = parseInt(daysInput.value);
-        if(isNaN(customDays) || customDays <= 0) {
-            alert("कृपया बॉक्स में सही दिन डालें (जैसे 5, 15, 30)");
-            return;
-        }
-
-        fetchCustomBtn.innerText = "ढूंढ रहा हूँ... ⏳";
+    // फंक्शन: डाटा छांटने के लिए
+    async function fetchLeads(days) {
+        document.getElementById('fetch-custom-btn').innerText = "Fetching... ⏳";
         upcomingList.innerHTML = ""; 
 
         try {
@@ -117,7 +140,7 @@
             today.setHours(0,0,0,0);
             
             const targetDate = new Date();
-            targetDate.setDate(today.getDate() + customDays);
+            targetDate.setDate(today.getDate() + days);
             
             let html = "";
             let count = 0;
@@ -129,28 +152,42 @@
                     
                     if(fDate >= today && fDate <= targetDate) {
                         count++;
-                        html += `<div class="task-item">
-                                    <strong>👤 ${item.name}</strong> <span class="badge">${item.followUpDate}</span><br>
-                                    <span style="color: #555;">📝 ${item.req}</span>
-                                 </div>`;
+                        html += `
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="task-name">👤 ${item.name}</span>
+                                    <span class="task-date">🗓️ ${item.followUpDate}</span>
+                                </div>
+                                <div class="task-req">📝 ${item.req}</div>
+                            </div>`;
                     }
                 }
             });
 
             if(html === "") {
-                html = `<p style='color: #27ae60; font-weight: bold;'>👍 अगले ${customDays} दिनों में कोई पेंडिंग फॉलो-अप नहीं है!</p>`;
+                html = `<div class="summary-badge" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;">👍 No pending follow-ups for the next ${days} days!</div>`;
             } else {
-                html = `<div style="background: #fad390; padding: 5px 10px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; font-size: 14px;">कुल ${count} फॉलो-अप मिले:</div>` + html;
+                html = `<div class="summary-badge">Found ${count} follow-up(s) in next ${days} days</div>` + html;
             }
             
             upcomingList.innerHTML = html;
 
         } catch (error) {
-            upcomingList.innerHTML = "❌ लिस्ट नहीं ला पाया। कृपया इंटरनेट चेक करें।";
+            upcomingList.innerHTML = "<div style='color: #ef4444; font-size: 14px;'>❌ Failed to fetch list. Check internet.</div>";
         } finally {
-            fetchCustomBtn.innerText = "डेटा देखें 🔍";
+            document.getElementById('fetch-custom-btn').innerText = "Search 🔍";
         }
-    });
+    }
+
+    // कस्टम दिनों के लिए बटन क्लिक
+    function fetchCustomLeads() {
+        let customDays = parseInt(daysInput.value);
+        if(isNaN(customDays) || customDays <= 0) {
+            alert("Please enter a valid number of days");
+            return;
+        }
+        fetchLeads(customDays);
+    }
 </script>
 
 </body>
