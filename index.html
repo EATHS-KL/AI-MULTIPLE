@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Sales Diary</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        
+        #text-output { width: 100%; height: 120px; margin-top: 15px; padding: 15px; border: 2px solid #2ed573; border-radius: 8px; font-size: 18px; box-sizing: border-box; resize: none; background-color: #fafffc; }
+        #text-output:focus { outline: none; border-color: #ff4757; }
+
+        #save-btn { background-color: #1e90ff; color: white; border: none; border-radius: 8px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: 0.3s; }
+        #save-btn:disabled { background-color: #a4b0be; cursor: not-allowed; }
+
+        .follow-up-section { margin-top: 20px; text-align: left; background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9f43; }
+        
+        /* New Filter Box Styles */
+        .filter-container { display: flex; gap: 10px; margin-top: 15px; }
+        #days-input { width: 30%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; text-align: center; }
+        #fetch-custom-btn { width: 70%; background-color: #ff9f43; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        #fetch-custom-btn:active { transform: scale(0.98); }
+
+        .task-item { padding: 12px 0; border-bottom: 1px solid #ffeaa7; font-size: 15px; }
+        .task-item:last-child { border-bottom: none; }
+        .badge { background: #ff4757; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Smart Sales Diary</h2>
+    <p>नीचे बॉक्स पर क्लिक करें और बोलें:</p>
+
+    <textarea id="text-output" placeholder="यहाँ टैप करें और बोलें..."></textarea>
+    <button id="save-btn">डायरी में सेव करें 💾</button>
+
+    <div class="follow-up-section">
+        <p id="status-msg">सिस्टम रेडी है ✅</p>
+        <hr style="border: 0.5px solid #ffeaa7; margin: 15px 0;">
+        
+        <h4 style="margin: 0 0 10px 0; color: #d35400;">🗓️ कस्टम फॉलो-अप फ़िल्टर</h4>
+        
+        <!-- नया फ़िल्टर बॉक्स और बटन -->
+        <div class="filter-container">
+            <input type="number" id="days-input" placeholder="दिन (उदा. 7, 30)" min="1">
+            <button id="fetch-custom-btn">डेटा देखें 🔍</button>
+        </div>
+        
+        <!-- लिस्ट यहाँ दिखेगी -->
+        <div id="upcoming-list" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<script>
+    const saveBtn = document.getElementById('save-btn');
+    const fetchCustomBtn = document.getElementById('fetch-custom-btn');
+    const daysInput = document.getElementById('days-input');
+    const textOutput = document.getElementById('text-output');
+    const statusMsg = document.getElementById('status-msg');
+    const upcomingList = document.getElementById('upcoming-list');
+
+    // 👇 अपना Web App URL यहाँ डालें 👇
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzjsrRciq5Vluicx4NvxEsga5G8rmfhT1YuBX3BJCM6Z2tTO90FhjJxZJJ7hVrFOkkFLA/exec'; 
+
+    // डेटा सेव करने वाला पुराना कोड
+    saveBtn.addEventListener('click', async () => {
+        const recordedText = textOutput.value;
+        if(recordedText.trim() === "") { alert("पहले कुछ बोलकर टेक्स्ट टाइप करें!"); return; }
+        
+        saveBtn.innerText = "सेव हो रहा है... ⏳"; saveBtn.disabled = true;
+        statusMsg.innerText = "Gemini डेटा प्रोसेस कर रहा है...";
+
+        try {
+            const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ text: recordedText }) });
+            const result = await response.json();
+            if(result.status === "success") {
+                statusMsg.innerHTML = "✅ डेटा सेव हो गया!";
+                textOutput.value = ""; 
+            } else { statusMsg.innerHTML = "❌ एरर: " + result.message; }
+        } catch (error) {
+            statusMsg.innerHTML = "❌ नेटवर्क एरर!";
+        } finally {
+            saveBtn.innerText = "डायरी में सेव करें 💾"; saveBtn.disabled = false;
+        }
+    });
+
+    // कस्टम डेट के हिसाब से डेटा लाने वाला नया कोड
+    fetchCustomBtn.addEventListener('click', async () => {
+        let customDays = parseInt(daysInput.value);
+        
+        // अगर यूज़र ने खाली बॉक्स में क्लिक किया या गलत नंबर डाला
+        if(isNaN(customDays) || customDays <= 0) {
+            alert("कृपया बॉक्स में सही दिन डालें (जैसे 5, 15, 30)");
+            return;
+        }
+
+        fetchCustomBtn.innerText = "ढूंढ रहा हूँ... ⏳";
+        upcomingList.innerHTML = ""; 
+
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const data = await response.json();
+            
+            // आज की और यूज़र के डाले गए दिनों के बाद की तारीख सेट करना
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const targetDate = new Date();
+            targetDate.setDate(today.getDate() + customDays);
+            
+            let html = "";
+            let count = 0;
+            
+            data.forEach(item => {
+                if(item.followUpDate !== "N/A" && item.followUpDate.includes("/")) {
+                    const parts = item.followUpDate.split("/");
+                    const fDate = new Date(parts[2], parts[1]-1, parts[0]); 
+                    
+                    if(fDate >= today && fDate <= targetDate) {
+                        count++;
+                        html += `<div class="task-item">
+                                    <strong>👤 ${item.name}</strong> <span class="badge">${item.followUpDate}</span><br>
+                                    <span style="color: #555;">📝 ${item.req}</span>
+                                 </div>`;
+                    }
+                }
+            });
+
+            if(html === "") {
+                html = `<p style='color: #27ae60; font-weight: bold;'>👍 अगले ${customDays} दिनों में कोई पेंडिंग फॉलो-अप नहीं है!</p>`;
+            } else {
+                // लिस्ट के ऊपर एक छोटी सी समरी (Summary) भी दिखाएंगे
+                html = `<div style="background: #fad390; padding: 5px 10px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; font-size: 14px;">कुल ${count} फॉलो-अप मिले:</div>` + html;
+            }
+            
+            upcomingList.innerHTML = html;
+
+        } catch (error) {
+            upcomingList.innerHTML = "❌ लिस्ट नहीं ला पाया। कृपया इंटरनेट चेक करें।";
+        } finally {
+            fetchCustomBtn.innerText = "डेटा देखें 🔍";
+        }
+    });
+</script>
+
+</body>
+</html>
